@@ -48,7 +48,6 @@
       topBtn.classList.toggle('show', scrollY > innerHeight);
       const hh = heroEl.offsetHeight;
       heroEl.style.setProperty('--p', Math.min(1, Math.max(0, scrollY / hh)).toFixed(3));
-      const st = navEl.getBoundingClientRect().top <= 0.5; navEl.classList.toggle('stuck', st); sheetEl.classList.toggle('stuck', st);
       ticking = false;
     });
   };
@@ -57,6 +56,15 @@
   // Transición de cortina: tapa, salta y descubre (nunca se ve el recorrido por la portada)
   const curtain = $('.curtain');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Enlaces compartidos con #seccion: se quita de la dirección para que al copiar/compartir quede limpia
+  const cleanHash = () => { if (location.hash) history.replaceState(null, '', location.pathname + location.search); };
+  const startHash = location.hash;
+  cleanHash();
+  if (startHash.length > 1) {
+    const el = document.getElementById(decodeURIComponent(startHash.slice(1)));
+    const go = () => { if (el) { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, targetY(el)); document.documentElement.style.scrollBehavior = ''; } };
+    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(go));
+  }
   let busy = false;
   const jumpTo = y => {
     const html = document.documentElement;
@@ -76,7 +84,7 @@
       }));
     }, 620);
   };
-  const targetY = el => el.getBoundingClientRect().top + window.scrollY - (el.id === 'inicio' ? 0 : 58);
+  const targetY = el => el.getBoundingClientRect().top + window.scrollY - (el.id === 'inicio' ? 0 : navEl.offsetHeight - 4);
   $$('a[href^="#"]').forEach(link => link.addEventListener('click', e => {
     const id = link.getAttribute('href'); const el = id.length > 1 && $(id);
     if (!el) return;
@@ -86,7 +94,6 @@
     const crossesHero = window.scrollY < heroH - 60 || y < heroH - 60;
     const far = crossesHero || Math.abs(y - window.scrollY) > innerHeight * 1.2;
     if (far) goTo(y, true); else window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
-    history.replaceState(null, '', id);
   }));
   topBtn.addEventListener('click', () => goTo(0, window.scrollY > innerHeight * 1.2));
 
@@ -96,7 +103,6 @@
   const SRC = 'audio/musica.mp3';
   const START = 3.0, LOOP_START = 11.2, LOOP_END = 74.60626, VOL = 0.42;
   let ctx = null, gain = null, source = null, buffer = null, loading = false, playing = false;
-  fetch(SRC, { method: 'HEAD' }).then(r => { if (r.ok) music.hidden = false; }).catch(() => {});
 
   const setState = on => {
     playing = on;
@@ -166,7 +172,9 @@
   };
   ['pointerdown', 'touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, autoStart, true));
   fetch(SRC, { method: 'HEAD' }).then(r => {
-    if (!r.ok || userOff()) return;
+    if (!r.ok) return;
+    music.hidden = false;
+    if (userOff()) return;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     try {

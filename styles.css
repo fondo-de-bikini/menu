@@ -225,8 +225,6 @@ img{display:block;max-width:100%}
 .hero > :not(.dim){transform:translateY(calc(var(--p) * -6svh)) scale(calc(1 - var(--p) * .07));opacity:calc(1 - var(--p) * .85);will-change:transform,opacity}
 .hero .dim{position:absolute;inset:0;background:#071A30;opacity:calc(var(--p) * .75);pointer-events:none;z-index:5}
 .sheet{position:relative;z-index:2;margin-top:-28px;border-radius:26px 26px 0 0;background:var(--sand);box-shadow:0 -18px 40px rgba(0,0,0,.45)}
-.sheet .grip{position:absolute;left:50%;top:8px;width:44px;height:4px;margin-left:-22px;border-radius:4px;background:rgba(231,164,60,.85);z-index:25}
-.sheet .nav{border-radius:26px 26px 0 0;padding-top:12px;transition:border-radius .25s,padding .25s}
-.sheet .nav.stuck{border-radius:0;padding-top:0}
-.sheet .grip{transition:opacity .2s}
-.sheet.stuck .grip{opacity:0}
+.sheet .lip{position:relative;height:16px;border-radius:26px 26px 0 0;background:#0B2139}
+.sheet .grip{position:absolute;left:50%;top:7px;width:44px;height:4px;margin-left:-22px;border-radius:4px;background:rgba(231,164,60,.85)}
+.nav{overflow-anchor:none}
