@@ -1,3 +1,2 @@
-Musica del menu: musica.mp3 (recortada a 76.5 s; la pagina la repite en bucle entre 11.2 s y 74.6 s).
-El archivo completo original sigue en Descargas\musica.mp3.
-musica.wav es la musica original anterior, ya no se usa.
+Musica actual: musica.wav (original, compuesta para Fondo de Bikini, sin derechos de terceros).
+Si consiguen el audio oficial con licencia, guardenlo aqui como musica.mp3: la pagina lo usara automaticamente en lugar del .wav.

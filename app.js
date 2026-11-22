@@ -34,6 +34,7 @@
       if (on) chipBox.scrollTo({ left: c.offsetLeft - chipBox.clientWidth / 2 + c.clientWidth / 2, behavior: 'smooth' });
     });
   };
+  const heroEl = $('.hero'), navEl = $('.nav'), sheetEl = $('.sheet');
   let ticking = false;
   const onScroll = () => {
     if (ticking) return; ticking = true;
@@ -45,6 +46,9 @@
       const h = document.documentElement.scrollHeight - innerHeight;
       progress.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`;
       topBtn.classList.toggle('show', scrollY > innerHeight);
+      const hh = heroEl.offsetHeight;
+      heroEl.style.setProperty('--p', Math.min(1, Math.max(0, scrollY / hh)).toFixed(3));
+      const st = navEl.getBoundingClientRect().top <= 0.5; navEl.classList.toggle('stuck', st); sheetEl.classList.toggle('stuck', st);
       ticking = false;
     });
   };
