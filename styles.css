@@ -43,8 +43,8 @@ img{display:block;max-width:100%}
 .hero .sandwave{position:absolute;left:0;right:0;bottom:0;height:62%;}
 .hero .d1{position:absolute;left:-14%;bottom:-16%;width:78%;transform:rotate(-4deg);filter:drop-shadow(0 14px 18px rgba(0,0,0,.45));animation:rise 1.4s 1s var(--ease) both}
 .hero .d2{position:absolute;right:-10%;bottom:-6%;width:52%;filter:drop-shadow(0 14px 18px rgba(0,0,0,.45));animation:rise 1.4s 1.2s var(--ease) both}
-.swimmer{position:absolute;top:13svh;left:0;width:84px;z-index:2;animation:swim 16s linear 2s infinite;opacity:0}
-.medusa-h{position:absolute;top:21svh;left:9%;width:46px;opacity:.9;animation:bob 5s ease-in-out infinite}
+.swimmer{position:absolute;top:calc(100% - 27svh - 84px);left:0;width:76px;z-index:0;animation:swim 16s linear 2s infinite;opacity:0}
+.medusa-h{position:absolute;top:calc(5svh + 36px);left:18px;width:40px;opacity:.9;animation:bob 5s ease-in-out infinite;z-index:0}
 .scrollcue{position:absolute;bottom:16px;left:50%;margin-left:-14px;width:28px;height:28px;z-index:4;border-right:2px solid var(--cream);border-bottom:2px solid var(--cream);transform:rotate(45deg);animation:cue 2s infinite;opacity:.8}
 .bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bubbles i{position:absolute;bottom:-30px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35),rgba(255,255,255,.04) 60%);animation:bubble linear infinite}
@@ -116,7 +116,7 @@ img{display:block;max-width:100%}
 .lic .pr{text-align:right;font-size:15px}
 
 /* ---------- FOOTER ---------- */
-.foot{position:relative;color:var(--cream);text-align:center;padding:46px 24px 180px;
+.foot{position:relative;color:var(--cream);text-align:center;padding:46px 24px 250px;
   background:url(img/fl_dark.svg) 0 0/200px auto,linear-gradient(180deg,var(--navy),var(--deep))}
 .foot .logo{width:190px;height:190px;margin:0 auto;background:var(--sand);border-radius:50%;display:grid;place-items:center;box-shadow:0 0 0 5px var(--navy),0 0 0 7px var(--gold)}
 .foot .logo img{width:148px;height:auto}
@@ -171,14 +171,15 @@ img{display:block;max-width:100%}
 
 /* ---------- DETALLES ANIMADOS ---------- */
 .hero{isolation:isolate}
-.hero .flor{position:absolute;pointer-events:none;opacity:.28;z-index:-1}
-.hero .f1{width:150px;right:-34px;top:9svh;animation:drift1 26s ease-in-out infinite}
-.hero .f2{width:120px;left:-40px;top:48svh;animation:drift2 32s ease-in-out infinite}
-.hero .alga{position:absolute;left:47%;bottom:34%;width:24%;transform-origin:50% 100%;animation:sway 5.5s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(0,0,0,.25))}
+.hero .flor{position:absolute;pointer-events:none;opacity:.32;z-index:-1}
+.hero .f1{width:78px;right:22px;top:calc(5svh + 34px);animation:drift1 26s ease-in-out infinite}
+.hero .f2{width:54px;left:12px;top:56svh;animation:drift2 32s ease-in-out infinite}
+.hero .alga{position:absolute;left:52%;bottom:30%;width:15%;transform-origin:50% 100%;animation:sway 5.5s ease-in-out infinite;z-index:0}
+.hero .d1,.hero .d2{z-index:1}
 .foot{overflow:hidden}
 .foot .logo,.foot .letrero,.foot small{position:relative;z-index:1}
-.foot .coral{position:absolute;left:-10px;bottom:-6px;width:150px;transform-origin:20% 100%;animation:sway 7s ease-in-out infinite}
-.foot .rocas{position:absolute;right:-30px;bottom:-14px;width:190px;transform-origin:60% 100%;animation:sway 9s ease-in-out infinite reverse}
+.foot .coral{position:absolute;left:0;bottom:62px;width:140px;z-index:0;transform-origin:0 100%;animation:breathe 7s ease-in-out infinite}
+.foot .alga-f{position:absolute;right:34px;bottom:58px;width:62px;z-index:0;transform-origin:50% 100%;animation:sway 6.5s ease-in-out infinite reverse}
 .reveal.in .ic-concha{animation:bob 4.5s ease-in-out infinite}
 .reveal.in .ic-estrella{animation:twinkle 6s ease-in-out infinite}
 .reveal.in .ic-ancla{transform-origin:50% 8%;animation:pendulum 4s ease-in-out infinite}
@@ -204,3 +205,17 @@ img{display:block;max-width:100%}
 @keyframes tip{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg) translateY(-3px)}}
 @keyframes glint{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
 @keyframes portIn{from{opacity:0;transform:scale(.82) rotate(-8deg)}to{opacity:1;transform:none}}
+
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+/* ---------- TRANSICIÓN AL ENTRAR AL MENÚ ---------- */
+.curtain{position:fixed;left:0;right:0;top:-30px;height:calc(100% + 60px);z-index:60;pointer-events:none;display:flex;flex-direction:column;transform:translateY(105%);visibility:hidden}
+.curtain .cw{display:block;width:100%;height:30px;flex:none}
+.curtain .cbody{flex:1;display:grid;place-items:center;background:url(img/fl_dark.svg) 0 0/200px auto,linear-gradient(180deg,#0C2340,#071A30)}
+.cplate{width:120px;height:120px;border-radius:50%;background:var(--sand);display:grid;place-items:center;box-shadow:0 0 0 5px var(--navy),0 0 0 7px var(--gold),0 10px 30px rgba(0,0,0,.45);transform:scale(.8);opacity:0}
+.cplate img{width:92px}
+.curtain.cover{visibility:visible;transition:transform .5s cubic-bezier(.7,0,.3,1);transform:translateY(0)}
+.curtain.cover .cplate{transition:transform .5s var(--ease) .15s,opacity .4s .15s;transform:scale(1);opacity:1}
+.curtain.reveal-out{visibility:visible;transition:transform .6s cubic-bezier(.7,0,.3,1);transform:translateY(-105%)}
+.curtain.reveal-out .cplate{transform:scale(1);opacity:1}
+
+.foot .seabed{position:absolute;left:0;bottom:0;width:100%;height:90px;z-index:0;display:block}
