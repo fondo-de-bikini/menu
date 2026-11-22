@@ -116,7 +116,7 @@ img{display:block;max-width:100%}
 .lic .pr{text-align:right;font-size:15px}
 
 /* ---------- FOOTER ---------- */
-.foot{position:relative;color:var(--cream);text-align:center;padding:46px 24px 120px;
+.foot{position:relative;color:var(--cream);text-align:center;padding:46px 24px 180px;
   background:url(img/fl_dark.svg) 0 0/200px auto,linear-gradient(180deg,var(--navy),var(--deep))}
 .foot .logo{width:190px;height:190px;margin:0 auto;background:var(--sand);border-radius:50%;display:grid;place-items:center;box-shadow:0 0 0 5px var(--navy),0 0 0 7px var(--gold)}
 .foot .logo img{width:148px;height:auto}
@@ -168,3 +168,39 @@ img{display:block;max-width:100%}
   .swimmer,.bubbles{display:none}
 }
 @media (min-width:560px){ body{background:var(--deep) url(img/fl_dark.svg) 0 0/260px auto} }
+
+/* ---------- DETALLES ANIMADOS ---------- */
+.hero{isolation:isolate}
+.hero .flor{position:absolute;pointer-events:none;opacity:.28;z-index:-1}
+.hero .f1{width:150px;right:-34px;top:9svh;animation:drift1 26s ease-in-out infinite}
+.hero .f2{width:120px;left:-40px;top:48svh;animation:drift2 32s ease-in-out infinite}
+.hero .alga{position:absolute;left:47%;bottom:34%;width:24%;transform-origin:50% 100%;animation:sway 5.5s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(0,0,0,.25))}
+.foot{overflow:hidden}
+.foot .logo,.foot .letrero,.foot small{position:relative;z-index:1}
+.foot .coral{position:absolute;left:-10px;bottom:-6px;width:150px;transform-origin:20% 100%;animation:sway 7s ease-in-out infinite}
+.foot .rocas{position:absolute;right:-30px;bottom:-14px;width:190px;transform-origin:60% 100%;animation:sway 9s ease-in-out infinite reverse}
+.reveal.in .ic-concha{animation:bob 4.5s ease-in-out infinite}
+.reveal.in .ic-estrella{animation:twinkle 6s ease-in-out infinite}
+.reveal.in .ic-ancla{transform-origin:50% 8%;animation:pendulum 4s ease-in-out infinite}
+.reveal.in .ic-pez{animation:fish 5s ease-in-out infinite}
+.reveal.in .ic-timon{animation:spin 18s linear infinite}
+.reveal.in .ic-brujula{animation:compass 7s ease-in-out infinite}
+.reveal.in .ic-salvavidas{animation:float 5s ease-in-out infinite}
+.reveal.in .ic-gorro{transform-origin:50% 90%;animation:tip 4s ease-in-out infinite}
+.port .glass:after{content:"";position:absolute;inset:-20%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.38) 50%,transparent 60%);transform:translateX(-120%);pointer-events:none}
+.gallery.in figure .glass:after{animation:glint 1.6s var(--ease) both}
+.gallery.in figure:nth-child(2) .glass:after{animation-delay:.25s}
+.gallery.in figure:nth-child(3) .glass:after{animation-delay:.5s}
+.gallery.in figure .port{animation:portIn .9s var(--ease) both}
+.gallery.in figure:nth-child(2) .port{animation-delay:.12s}
+.gallery.in figure:nth-child(3) .port{animation-delay:.24s}
+@keyframes drift1{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(-14px,18px) rotate(18deg)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(16px,-14px) rotate(-22deg)}}
+@keyframes twinkle{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(14deg) scale(1.08)}}
+@keyframes pendulum{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes fish{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-6px) rotate(-6deg)}75%{transform:translateX(4px) rotate(5deg)}}
+@keyframes compass{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(25deg)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-7px) rotate(6deg)}}
+@keyframes tip{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg) translateY(-3px)}}
+@keyframes glint{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+@keyframes portIn{from{opacity:0;transform:scale(.82) rotate(-8deg)}to{opacity:1;transform:none}}
