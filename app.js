@@ -149,12 +149,32 @@
     music.classList.add('seen');
     if (loading) return;
     try {
-      if (playing) pauseWebAudio(); else await startWebAudio();
+      if (playing) { pauseWebAudio(); try { sessionStorage.setItem('musicaOff', '1'); } catch (e) {} }
+      else { try { sessionStorage.removeItem('musicaOff'); } catch (e) {} await startWebAudio(); }
     } catch (e) {
       loading = false; music.classList.remove('loading');
       toggleFallback();
     }
   });
+  // Música automática: intenta sonar al abrir; si el navegador lo bloquea, empieza con el primer toque en la página
+  const userOff = () => { try { return sessionStorage.getItem('musicaOff') === '1'; } catch (e) { return false; } };
+  const autoStart = async ev => {
+    if (ev && ev.target && ev.target.closest && ev.target.closest('.music')) return;
+    if (playing || loading || userOff() || music.hidden) return;
+    try { await startWebAudio(); music.classList.add('seen'); } catch (e) {}
+    if (playing) ['pointerdown', 'touchend', 'click', 'keydown'].forEach(t => document.removeEventListener(t, autoStart, true));
+  };
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, autoStart, true));
+  fetch(SRC, { method: 'HEAD' }).then(r => {
+    if (!r.ok || userOff()) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      ctx = ctx || new AC();
+      if (!gain) { gain = ctx.createGain(); gain.gain.value = 0; gain.connect(ctx.destination); }
+      ctx.resume().then(() => { if (ctx.state === 'running') autoStart(); }).catch(() => {});
+    } catch (e) {}
+  }).catch(() => {});
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && playing) { if (ctx) pauseWebAudio(); else { audio.pause(); setState(false); } }
   });
