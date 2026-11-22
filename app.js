@@ -52,19 +52,36 @@
   onScroll();
   topBtn.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
 
-  // Música: el botón solo aparece si existe el archivo audio/musica.mp3
+  // Música: el botón aparece si existe audio/musica.mp3 (oficial) o audio/musica.wav (original)
   const music = $('.music');
   const audio = $('#bgm');
-  fetch(audio.getAttribute('src'), { method: 'HEAD' })
-    .then(r => { if (r.ok) music.hidden = false; })
-    .catch(() => {});
-  audio.volume = 0.45;
+  const VOL = 0.45;
+  (async () => {
+    for (const src of ['audio/musica.mp3', 'audio/musica.wav']) {
+      try { const r = await fetch(src, { method: 'HEAD' }); if (r.ok) { audio.src = src; music.hidden = false; return; } } catch (e) {}
+    }
+  })();
+  let fadeTimer = null;
+  const fadeTo = (target, ms, done) => {
+    clearInterval(fadeTimer);
+    const start = audio.volume, t0 = performance.now();
+    fadeTimer = setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      audio.volume = start + (target - start) * k;
+      if (k >= 1) { clearInterval(fadeTimer); done && done(); }
+    }, 40);
+  };
   music.addEventListener('click', () => {
     music.classList.add('seen');
     if (audio.paused) {
-      audio.play().then(() => { music.classList.add('playing'); music.setAttribute('aria-label', 'Pausar música'); }).catch(() => {});
+      audio.volume = 0;
+      audio.play().then(() => {
+        music.classList.add('playing'); music.setAttribute('aria-label', 'Pausar música');
+        fadeTo(VOL, 2000);
+      }).catch(() => {});
     } else {
-      audio.pause(); music.classList.remove('playing'); music.setAttribute('aria-label', 'Reproducir música');
+      music.classList.remove('playing'); music.setAttribute('aria-label', 'Reproducir música');
+      fadeTo(0, 500, () => audio.pause());
     }
   });
   document.addEventListener('visibilitychange', () => {

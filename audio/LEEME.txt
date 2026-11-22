@@ -1,3 +1,2 @@
-Coloca aqui la cancion con el nombre exacto: musica.mp3
-El boton de musica aparece solo cuando este archivo existe.
-Usa un audio que tengan permitido usar (licencia).
+Musica actual: musica.wav (original, compuesta para Fondo de Bikini, sin derechos de terceros).
+Si consiguen el audio oficial con licencia, guardenlo aqui como musica.mp3: la pagina lo usara automaticamente en lugar del .wav.
