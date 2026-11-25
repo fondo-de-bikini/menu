@@ -25,24 +25,51 @@
   const progress = $('.progress');
   const topBtn = $('.top');
   let current = null;
+  // La barra solo se recorre si la pestaña activa no se ve completa, y nunca mientras el dedo está sobre ella
+  let touchingBar = false;
+  chipBox.addEventListener('pointerdown', () => { touchingBar = true; }, { passive: true });
+  addEventListener('pointerup', () => { touchingBar = false; }, { passive: true });
+  addEventListener('pointercancel', () => { touchingBar = false; }, { passive: true });
+  const showChip = c => {
+    if (touchingBar) return;
+    const l = c.offsetLeft, r = l + c.offsetWidth, vl = chipBox.scrollLeft, vr = vl + chipBox.clientWidth;
+    if (l >= vl + 8 && r <= vr - 8) return;
+    chipBox.scrollTo({ left: l - chipBox.clientWidth / 2 + c.offsetWidth / 2, behavior: 'smooth' });
+  };
   const setActive = id => {
     if (id === current) return;
     current = id;
     chips.forEach(c => {
       const on = c.getAttribute('href') === '#' + id;
       c.classList.toggle('on', on);
-      if (on) chipBox.scrollTo({ left: c.offsetLeft - chipBox.clientWidth / 2 + c.clientWidth / 2, behavior: 'smooth' });
+      if (on) showChip(c);
     });
   };
   const heroEl = $('.hero'), navEl = $('.nav'), sheetEl = $('.sheet');
+  // Al tocar una pestaña se queda marcada esa sección hasta que la persona vuelva a desplazarse
+  let lockId = null;
+  const unlock = () => { lockId = null; };
+  ['wheel', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => {
+    if (e.target && e.target.closest && e.target.closest('.chips')) return;
+    unlock();
+  }, { passive: true }));
+  // Sección activa: la última cuyo inicio ya pasó por debajo de la barra (medido en pantalla, no con offsetTop)
+  const activeId = () => {
+    const lim = navEl.getBoundingClientRect().bottom + 24;
+    let id = null;
+    secs.forEach(s => { if (s && s.getBoundingClientRect().top <= lim) id = s.id; });
+    if (scrollY >= document.documentElement.scrollHeight - innerHeight - 2) {
+      // hasta abajo: la última sección que se alcanza a ver
+      secs.forEach(s => { if (s && s.getBoundingClientRect().top < innerHeight * 0.5) id = s.id; });
+    }
+    return id;
+  };
   let ticking = false;
   const onScroll = () => {
     if (ticking) return; ticking = true;
     requestAnimationFrame(() => {
-      const y = window.scrollY + 90;
-      let id = null;
-      secs.forEach(s => { if (s && s.offsetTop <= y) id = s.id; });
-      if (id) setActive(id);
+      const id = lockId || activeId();
+      if (id) setActive(id); else { current = null; chips.forEach(c => c.classList.toggle('on', false)); }
       const h = document.documentElement.scrollHeight - innerHeight;
       progress.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`;
       topBtn.classList.toggle('show', scrollY > innerHeight);
@@ -53,8 +80,21 @@
   };
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
-  // Transición de cortina: tapa, salta y descubre (nunca se ve el recorrido por la portada)
-  const curtain = $('.curtain');
+  // Transición de burbujas: suben, tapan la pantalla con el logo al centro, se salta y siguen subiendo
+  const btr = $('.btr'), btBack = $('.bt-back'), btFront = $('.bt-front');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const makeBubbles = () => {
+    const back = [], front = [];
+    const W = innerWidth, cols = W < 600 ? 5 : 8, rows = W < 600 ? 8 : 7;
+    const bub = (l, t, s, d, layer) => layer.push(`<span class="bub" style="--l:${l}%;--t:${t}%;--s:${s}px;--d:${d}ms;--dur:${Math.round(rnd(1250, 1450))}ms;--dx:${Math.round(rnd(-40, 40))}px"><i style="--w:${Math.round(rnd(380, 620))}ms"></i></span>`);
+    for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
+      const l = (k + rnd(.15, .85)) * 100 / cols, t = (r + rnd(.1, .9)) * 100 / rows;
+      bub(l, t, Math.round(rnd(W < 600 ? 56 : 76, W < 600 ? 118 : 160)), Math.round(rnd(0, 170)), Math.random() < .55 ? back : front);
+    }
+    for (let i = 0; i < 28; i++) bub(rnd(2, 98), rnd(2, 98), Math.round(rnd(34, 58)), Math.round(rnd(0, 220)), Math.random() < .5 ? back : front);
+    for (let i = 0; i < 60; i++) bub(rnd(1, 99), rnd(1, 99), Math.round(rnd(8, 30)), Math.round(rnd(0, 300)), Math.random() < .5 ? back : front);
+    btBack.innerHTML = back.join(''); btFront.innerHTML = front.join('');
+  };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Enlaces compartidos con #seccion: se quita de la dirección para que al copiar/compartir quede limpia
   const cleanHash = () => { if (location.hash) history.replaceState(null, '', location.pathname + location.search); };
@@ -71,31 +111,37 @@
     const prev = html.style.scrollBehavior; html.style.scrollBehavior = 'auto';
     window.scrollTo(0, y); html.style.scrollBehavior = prev;
   };
-  const goTo = (y, viaCurtain) => {
-    if (reduce || !viaCurtain) { jumpTo(y); return; }
+  // y puede ser un número o una función (se calcula justo al saltar); si hay elemento, se corrige si la página se acomodó
+  const land = (y, el) => {
+    jumpTo(typeof y === 'function' ? y() : y);
+    if (!el) return;
+    const fix = () => { const t = targetY(el); if (Math.abs(t - scrollY) > 2) jumpTo(t); };
+    requestAnimationFrame(() => requestAnimationFrame(fix)); setTimeout(fix, 400);
+  };
+  const goTo = (y, viaCurtain, el) => {
+    if (reduce || !viaCurtain) { land(y, el); return; }
     if (busy) return; busy = true;
-    curtain.classList.toggle('reveal-out', false); void curtain.offsetWidth;
-    curtain.classList.toggle('cover', true);
-    setTimeout(() => {
-      jumpTo(y);
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        curtain.classList.toggle('cover', false); curtain.classList.toggle('reveal-out', true);
-        setTimeout(() => { curtain.classList.toggle('reveal-out', false); busy = false; }, 650);
-      }));
-    }, 620);
+    makeBubbles();
+    btr.classList.toggle('go', false); void btr.offsetWidth;
+    btr.classList.toggle('go', true);
+    setTimeout(() => land(y, el), 640);
+    setTimeout(() => { btr.classList.toggle('go', false); btBack.innerHTML = btFront.innerHTML = ''; busy = false; }, 1800);
   };
   const targetY = el => el.getBoundingClientRect().top + window.scrollY - (el.id === 'inicio' ? 0 : navEl.offsetHeight - 4);
   $$('a[href^="#"]').forEach(link => link.addEventListener('click', e => {
     const id = link.getAttribute('href'); const el = id.length > 1 && $(id);
     if (!el) return;
     e.preventDefault();
+    if (busy) return;
+    lockId = secs.includes(el) ? el.id : null;
+    if (lockId) setActive(lockId);
     const y = targetY(el);
-    const heroH = document.querySelector(".hero").offsetHeight;
+    const heroH = heroEl.offsetHeight;
     const crossesHero = window.scrollY < heroH - 60 || y < heroH - 60;
     const far = crossesHero || Math.abs(y - window.scrollY) > innerHeight * 1.2;
-    if (far) goTo(y, true); else window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+    if (far) goTo(() => targetY(el), true, el); else window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
   }));
-  topBtn.addEventListener('click', () => goTo(0, window.scrollY > innerHeight * 1.2));
+  topBtn.addEventListener('click', () => { lockId = null; goTo(0, window.scrollY > innerHeight * 1.2); });
 
   // Música: canción del menú en bucle continuo (11.2 s → 74.6 s), con entrada y salida suaves
   const music = $('.music');
