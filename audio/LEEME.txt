@@ -1,2 +1,0 @@
-Musica actual: musica.wav (original, compuesta para Fondo de Bikini, sin derechos de terceros).
-Si consiguen el audio oficial con licencia, guardenlo aqui como musica.mp3: la pagina lo usara automaticamente en lugar del .wav.
