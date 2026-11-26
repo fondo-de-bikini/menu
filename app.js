@@ -48,7 +48,9 @@
   const heroEl = $('.hero'), navEl = $('.nav'), sheetEl = $('.sheet');
   // Al tocar una pestaña se queda marcada esa sección hasta que la persona vuelva a desplazarse
   let lockId = null;
-  const unlock = () => { lockId = null; };
+  // Cada navegación tiene su turno: correcciones pendientes de un toque anterior ya no mueven la página
+  let navToken = 0;
+  const unlock = () => { lockId = null; navToken++; };
   ['wheel', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => {
     if (e.target && e.target.closest && e.target.closest('.chips')) return;
     unlock();
@@ -83,16 +85,16 @@
   // Transición de burbujas: suben, tapan la pantalla con el logo al centro, se salta y siguen subiendo
   const btr = $('.btr'), btBack = $('.bt-back'), btFront = $('.bt-front');
   const rnd = (a, b) => a + Math.random() * (b - a);
-  const makeBubbles = () => {
+  const makeBubbles = (intro) => {
     const back = [], front = [];
     const W = innerWidth, cols = W < 600 ? 5 : 8, rows = W < 600 ? 8 : 7;
-    const bub = (l, t, s, d, layer) => layer.push(`<span class="bub" style="--l:${l}%;--t:${t}%;--s:${s}px;--d:${d}ms;--dur:${Math.round(rnd(1250, 1450))}ms;--dx:${Math.round(rnd(-40, 40))}px"><i style="--w:${Math.round(rnd(380, 620))}ms"></i></span>`);
+    const bub = (l, t, s, d, layer) => layer.push(`<span class="bub" style="--l:${l}%;--t:${t}%;--s:${s}px;--d:${d}ms;--dur:${Math.round(intro ? rnd(1250, 1550) : rnd(2050, 2350))}ms;--dx:${Math.round(rnd(-40, 40))}px"><i style="--w:${Math.round(rnd(380, 620))}ms"></i></span>`);
     for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
       const l = (k + rnd(.15, .85)) * 100 / cols, t = (r + rnd(.1, .9)) * 100 / rows;
-      bub(l, t, Math.round(rnd(W < 600 ? 56 : 76, W < 600 ? 118 : 160)), Math.round(rnd(0, 170)), Math.random() < .55 ? back : front);
+      bub(l, t, Math.round(rnd(W < 600 ? 56 : 76, W < 600 ? 118 : 160)), Math.round(rnd(0, 200)), Math.random() < .55 ? back : front);
     }
     for (let i = 0; i < 28; i++) bub(rnd(2, 98), rnd(2, 98), Math.round(rnd(34, 58)), Math.round(rnd(0, 220)), Math.random() < .5 ? back : front);
-    for (let i = 0; i < 60; i++) bub(rnd(1, 99), rnd(1, 99), Math.round(rnd(8, 30)), Math.round(rnd(0, 300)), Math.random() < .5 ? back : front);
+    for (let i = 0; i < (intro ? 80 : 60); i++) bub(rnd(1, 99), rnd(1, 99), Math.round(rnd(8, 30)), Math.round(rnd(0, intro ? 380 : 300)), Math.random() < .5 ? back : front);
     btBack.innerHTML = back.join(''); btFront.innerHTML = front.join('');
   };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -107,6 +109,7 @@
   }
   let busy = false;
   const jumpTo = y => {
+    try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); if (Math.abs(scrollY - y) <= 2) return; } catch (e) {}
     const html = document.documentElement;
     const prev = html.style.scrollBehavior; html.style.scrollBehavior = 'auto';
     window.scrollTo(0, y); html.style.scrollBehavior = prev;
@@ -115,17 +118,45 @@
   const land = (y, el) => {
     jumpTo(typeof y === 'function' ? y() : y);
     if (!el) return;
-    const fix = () => { const t = targetY(el); if (Math.abs(t - scrollY) > 2) jumpTo(t); };
+    const my = navToken;
+    const fix = () => { if (my !== navToken) return; const t = targetY(el); if (Math.abs(t - scrollY) > 2) jumpTo(t); };
     requestAnimationFrame(() => requestAnimationFrame(fix)); setTimeout(fix, 400);
   };
   const goTo = (y, viaCurtain, el) => {
     if (reduce || !viaCurtain) { land(y, el); return; }
     if (busy) return; busy = true;
+    btr.classList.toggle('intro', false);
     makeBubbles();
     btr.classList.toggle('go', false); void btr.offsetWidth;
     btr.classList.toggle('go', true);
-    setTimeout(() => land(y, el), 640);
-    setTimeout(() => { btr.classList.toggle('go', false); btBack.innerHTML = btFront.innerHTML = ''; busy = false; }, 1800);
+    const t0 = performance.now();
+    const dest = () => (typeof y === 'function' ? y() : y);
+    const anims = () => (document.getAnimations ? document.getAnimations().filter(a => { const t = a.effect && a.effect.target; return t && t.closest && t.closest('.btr'); }) : []);
+    let held = false, pauseAt = 0, pausedFor = 0;
+    const finish = () => { clearTimeout(safety); anims().forEach(a => a.play()); btr.classList.toggle('go', false); btBack.innerHTML = btFront.innerHTML = ''; busy = false; };
+    const safety = setTimeout(finish, 5200);   // pase lo que pase, nunca se queda tapada la página
+    // tapada la pantalla (0.7 s): salta, y sigue corrigiendo hasta que la posición se quede quieta
+    setTimeout(() => {
+      land(y, el);
+      let last = -1, still = 0;
+      const watch = () => {
+        const t = performance.now() - t0, want = el ? targetY(el) : dest();
+        if (Math.abs(scrollY - want) > 2) jumpTo(want);
+        still = Math.abs(scrollY - last) < 1 && Math.abs(scrollY - want) <= 2 ? still + 1 : 0;
+        last = scrollY;
+        const settled = still >= 6 && t > 1650;
+        // si a punto de destapar todavía no está quieto, se detiene la animación hasta que lo esté (máx. 1.5 s más)
+        if (!settled && t > 1700 && !held && t < 3100) { held = true; pauseAt = performance.now(); anims().forEach(a => a.pause()); }
+        if (settled || t > 3100) {
+          if (held) { held = false; pausedFor += performance.now() - pauseAt; anims().forEach(a => a.play()); }
+          const left = Math.max(0, 2400 + pausedFor - (performance.now() - t0));
+          setTimeout(finish, left + 450);
+          return;
+        }
+        setTimeout(watch, 30);
+      };
+      setTimeout(watch, 30);
+    }, 720);
   };
   const targetY = el => el.getBoundingClientRect().top + window.scrollY - (el.id === 'inicio' ? 0 : navEl.offsetHeight - 4);
   $$('a[href^="#"]').forEach(link => link.addEventListener('click', e => {
@@ -133,6 +164,7 @@
     if (!el) return;
     e.preventDefault();
     if (busy) return;
+    navToken++;
     lockId = secs.includes(el) ? el.id : null;
     if (lockId) setActive(lockId);
     const y = targetY(el);
@@ -141,7 +173,12 @@
     const far = crossesHero || Math.abs(y - window.scrollY) > innerHeight * 1.2;
     if (far) goTo(() => targetY(el), true, el); else window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
   }));
-  topBtn.addEventListener('click', () => { lockId = null; goTo(0, window.scrollY > innerHeight * 1.2); });
+  topBtn.addEventListener('click', () => { if (busy) return; lockId = null; navToken++; goTo(0, window.scrollY > innerHeight * 1.2); });
+
+  if (btr.classList.contains('intro')) {
+    if (!reduce && performance.now() < 1000) makeBubbles(true);
+    setTimeout(() => { btr.classList.toggle('intro', false); if (!busy) btBack.innerHTML = btFront.innerHTML = ''; }, 2100);
+  }
 
   // Música: canción del menú en bucle continuo (11.2 s → 74.6 s), con entrada y salida suaves
   const music = $('.music');
