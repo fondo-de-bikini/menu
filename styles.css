@@ -276,3 +276,8 @@ img{display:block;max-width:100%}
 @keyframes btplatein{0%{opacity:0;transform:scale(.6)}14%{opacity:1;transform:scale(1.06)}20%,48%{opacity:1;transform:scale(1)}72%,100%{opacity:0;transform:translateY(-40px) scale(1.12)}}
 .btr.intro .bub{animation:bubup var(--dur) cubic-bezier(.2,.72,.8,.28) var(--d) both}
 @media (prefers-reduced-motion:reduce){.btr.intro{display:none}}
+/* Dirección */
+.foot .social{gap:14px}
+.foot .addr{display:block;max-width:300px;margin:22px auto 0;color:rgba(248,242,231,.85);font-size:14.5px;line-height:1.55;letter-spacing:.03em;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.foot .addr span{display:block;margin-top:4px;color:var(--gold);font-weight:600;letter-spacing:.08em}
+.foot .addr:active{opacity:.7}
